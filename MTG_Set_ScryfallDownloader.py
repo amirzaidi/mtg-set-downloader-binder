@@ -241,13 +241,19 @@ def download_cards_list():
 
     i = 0
     for card in card_list:
-        i += 1
         card_data = card.strip().split(" ")  # Split the card data into card name, set code, and card number
+        
+        # Remove count from start
+        count = 1
         if card_data[0].isdigit():
+            count = int(card_data[0])
             del card_data[0]
+        
+        # Remove tags from end.
         while card_data[-1] == '#print' or card_data[-1] == '*F*':
             del card_data[-1]
 
+        # Split card names.
         if len(card_data) < 3:
             card_name = card.strip()
             set_code = ""
@@ -260,43 +266,47 @@ def download_cards_list():
         # Remove MDFC back-side from names.
         card_name = card_name.split("/")[0].strip()
         
-        # Output targets.
-        out_png = os.path.join(out_path, f"{i:03d} {card_name}.png")
-        out_png_back = os.path.join(out_path, f"{i:03d} {card_name} (Back).png")
-        
-        if os.path.exists(out_png):
-            print(f"Skipping | {card_name}")
-            continue
-        
-        # Check for overrides.
-        or_jpg = os.path.join(or_path, f"{card_name}.jpg")
-        or_png = os.path.join(or_path, f"{card_name}.png")
-        or_jpg_exists = os.path.isfile(or_jpg)
-        or_png_exists = os.path.isfile(or_png)
-        
-        if or_jpg_exists or or_png_exists:
-            print(f"Proxy    | {card_name}")
-            # Copy front.
-            if or_jpg_exists:
-                copy_override(or_jpg, out_png)
-            elif or_png_exists:
-                copy_override(or_png, out_png)
+        for j in range(count):
+            # Keep incrementing output number.
+            i += 1
             
-            # Copy back.
-            or_jpg_back = os.path.join(or_path, f"{card_name} (Back).jpg")
-            or_png_back = os.path.join(or_path, f"{card_name} (Back).png")
-            if os.path.isfile(or_jpg_back):
-                copy_override(or_jpg_back, out_png_back)
-            elif os.path.isfile(or_png_back):
-                copy_override(or_png_back, out_png_back)
-        else:
-            print(f"Scryfall | {card_name}")
-            files = get_card_data_and_download(i, card_name, set_code, card_number)
-            files_len = len(files)
-            if files_len > 0:
-                scale_card(files[0], out_png)
-                if files_len > 1:
-                    scale_card(files[1], out_png_back)
+            # Output targets.
+            out_png = os.path.join(out_path, f"{i:03d} {card_name}.png")
+            out_png_back = os.path.join(out_path, f"{i:03d} {card_name} (Back).png")
+            
+            if os.path.exists(out_png):
+                print(f"Skipping | {card_name}")
+                continue
+            
+            # Check for overrides.
+            or_jpg = os.path.join(or_path, f"{card_name}.jpg")
+            or_png = os.path.join(or_path, f"{card_name}.png")
+            or_jpg_exists = os.path.isfile(or_jpg)
+            or_png_exists = os.path.isfile(or_png)
+            
+            if or_jpg_exists or or_png_exists:
+                print(f"Proxy    | {card_name}")
+                # Copy front.
+                if or_jpg_exists:
+                    copy_override(or_jpg, out_png)
+                elif or_png_exists:
+                    copy_override(or_png, out_png)
+                
+                # Copy back.
+                or_jpg_back = os.path.join(or_path, f"{card_name} (Back).jpg")
+                or_png_back = os.path.join(or_path, f"{card_name} (Back).png")
+                if os.path.isfile(or_jpg_back):
+                    copy_override(or_jpg_back, out_png_back)
+                elif os.path.isfile(or_png_back):
+                    copy_override(or_png_back, out_png_back)
+            else:
+                print(f"Scryfall | {card_name}")
+                files = get_card_data_and_download(i, card_name, set_code, card_number)
+                files_len = len(files)
+                if files_len > 0:
+                    scale_card(files[0], out_png)
+                    if files_len > 1:
+                        scale_card(files[1], out_png_back)
     
     for path in list(glob.glob(os.path.join(tk_path, "*"))):
         file = os.path.basename(path)
