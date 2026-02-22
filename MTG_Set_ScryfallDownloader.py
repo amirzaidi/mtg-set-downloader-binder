@@ -297,6 +297,26 @@ def download_cards_list():
                 scale_card(files[0], out_png)
                 if files_len > 1:
                     scale_card(files[1], out_png_back)
+    
+    for path in list(glob.glob(os.path.join(tk_path, "*"))):
+        file = os.path.basename(path)
+        file_split = file.split(".")
+        name = file_split[0].strip()
+        if os.path.isfile(path) and not name.endswith(" (Back)"):
+            i += 1
+            print(f"Token    | {name}")
+            out_png = os.path.join(out_path, f"{i:03d} {name}.png")
+            copy_override(path, out_png)
+            
+            tk_jpg_back = os.path.join(tk_path, f"{name} (Back).jpg")
+            tk_png_back = os.path.join(tk_path, f"{name} (Back).png")
+            out_png_back = os.path.join(out_path, f"{i:03d} {name} (Back).png")
+            if os.path.isfile(tk_jpg_back):
+                copy_override(tk_jpg_back, out_png_back)
+            elif os.path.isfile(tk_png_back):
+                copy_override(tk_png_back, out_png_back)
+            else:
+                print(f"Token {name} lacking back face")
 
 # Output directory for card images
 output_dir = os.path.join(os.getcwd(), "art")
@@ -304,6 +324,7 @@ print("Writing files to", output_dir)
 
 dl_path = os.path.join(output_dir, "Scryfall")
 or_path = os.path.join(output_dir, "Override")
+tk_path = os.path.join(output_dir, "Token")
 out_path = os.path.join(output_dir, "Out")
 
 checkdir(dl_path)
@@ -321,4 +342,5 @@ wmrgb = wm[:, :, 0:3]
 wmrgb[:, :, 0] *= wma
 wmrgb[:, :, 1] *= wma
 wmrgb[:, :, 2] *= wma
+
 download_cards_list()
