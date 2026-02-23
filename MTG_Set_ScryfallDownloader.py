@@ -30,7 +30,7 @@ def writefile(url, file_path):
         with open(file_path, 'wb') as f:
             f.write(r.content)  # Write the response content to the file
 
-def get_card_data_and_download(i, card_name, set_code, card_number):    
+def get_card_data_and_download(i, card_name, search, set_code, card_number):    
     # Function to get card data from the Scryfall API and download the card image
     search_url = "https://api.scryfall.com/cards/search"
     set_code = set_code.replace("(", "").replace(")", "")  # Remove parentheses from the set code.
@@ -47,9 +47,9 @@ def get_card_data_and_download(i, card_name, set_code, card_number):
     
     print(f"Download | {card_name}")
     if set_code and card_number:
-        query = f'name:"{card_name}" set:{set_code} number:{card_number}'  # Query string for searching the card
+        query = f'name:"{search}" set:{set_code} number:{card_number}'  # Query string for searching the card
     else:
-        query = f'name:"{card_name}"'  # Query string for searching the card without set code and card number
+        query = f'name:"{search}"'  # Query string for searching the card without set code and card number
     
     params = {
         "q": query,
@@ -264,7 +264,10 @@ def download_cards_list():
             card_number = card_data[-1]
 
         # Remove MDFC back-side from names.
-        card_name = card_name.split("/")[0].strip()
+        search = card_name.split("/")[0].strip()
+        
+        # Strip illegal characters from file name.
+        card_name = "".join([c if c not in '/\\?%*:|"<>' else '_' for c in list(search)])
         
         for j in range(count):
             # Keep incrementing output number.
@@ -301,7 +304,7 @@ def download_cards_list():
                     copy_override(or_png_back, out_png_back)
             else:
                 print(f"Scryfall | {card_name}")
-                files = get_card_data_and_download(i, card_name, set_code, card_number)
+                files = get_card_data_and_download(i, card_name, search, set_code, card_number)
                 files_len = len(files)
                 if files_len > 0:
                     scale_card(files[0], out_png)
